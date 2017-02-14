@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.text.SimpleDateFormat;
 
 import twitter4j.Query;
 import twitter4j.QueryResult;
@@ -20,6 +21,9 @@ import twitter4j.TwitterFactory;
  *
  */
 public class TweetSearch {
+
+	/** 日付フォーマット */
+	static SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
 
 	/**
 	 * ツイートを検索します.
@@ -42,7 +46,7 @@ public class TweetSearch {
 
 		PrintWriter pw = null;
 		try {
-			File file = new File("tweets.txt");
+			File file = new File("tweets.tsv");
 			// 追記で書き込む
 			pw = new PrintWriter(new BufferedWriter(new FileWriter(file, true)));
 
@@ -57,14 +61,20 @@ public class TweetSearch {
 
 				// 検索実行
 				QueryResult result = twitter.search(query);
-				System.out.println("「" + arg + "」でヒットした件数 : " + result.getTweets().size());
 
 				// 検索結果の数だけ繰り返す
 				for (Status tweet : result.getTweets()) {
 
-					System.out.println("「" + arg + "」でヒットしました : " + tweet.getText());
-					// 検索結果をtweets.txtに書きこむ
-					pw.println(tweet.getText());
+					// 検索した情報をtweets.tsvに出力する
+					// ユーザー表示名
+					pw.print(tweet.getUser().getScreenName());
+					pw.print("\t");
+					// ツイート日時
+					pw.print(sdf.format(tweet.getCreatedAt()));
+					pw.print("\t");
+					// ツイート本文(改行はエスケープ)
+					pw.print(tweet.getText().replaceAll("\n", "\\\\n"));
+					pw.println();
 				}
 			}
 		} catch (IOException e) {
